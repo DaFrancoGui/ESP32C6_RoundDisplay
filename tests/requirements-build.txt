@@ -1,0 +1,4 @@
+# Host-side tools validated with ESP-IDF 5.5.1 and dependencies.lock.
+# The IDF Docker tag also contains Python tools; pin those independently.
+idf-component-manager==2.5.2
+esp-idf-kconfig==2.5.4

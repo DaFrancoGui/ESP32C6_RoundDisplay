@@ -1,0 +1,12 @@
+# Compile-only alternative: no touch, two buffers, slower SPI, other transforms.
+# CONFIG_RD_TOUCH_ENABLED is not set
+CONFIG_RD_DOUBLE_BUFFER=y
+CONFIG_RD_SPI_CLOCK_MHZ=20
+# CONFIG_RD_BGR is not set
+# CONFIG_RD_INVERT_COLORS is not set
+# CONFIG_RD_LCD_SWAP_XY is not set
+# CONFIG_RD_LCD_MIRROR_X is not set
+# CONFIG_RD_LCD_MIRROR_Y is not set
+# CONFIG_RD_TOUCH_SWAP_XY is not set
+# CONFIG_RD_TOUCH_MIRROR_X is not set
+CONFIG_RD_TOUCH_MIRROR_Y=y

@@ -1,0 +1,40 @@
+menu "Round Display"
+config RD_SPI_CLOCK_MHZ
+    int "LCD SPI clock (MHz)"
+    range 1 40
+    default 40
+config RD_BUFFER_LINES
+    int "DMA buffer height (lines)"
+    range 10 120
+    default 60
+config RD_DOUBLE_BUFFER
+    bool "Use two DMA buffers"
+    default n
+config RD_BGR
+    bool "Panel uses BGR element order"
+    default y
+config RD_INVERT_COLORS
+    bool "Invert panel colors"
+    default y
+config RD_LCD_SWAP_XY
+    bool "LCD: swap X/Y"
+    default y
+config RD_LCD_MIRROR_X
+    bool "LCD: mirror X"
+    default y
+config RD_LCD_MIRROR_Y
+    bool "LCD: mirror Y"
+    default y
+config RD_TOUCH_ENABLED
+    bool "Enable CHSC6X touch"
+    default y
+config RD_TOUCH_SWAP_XY
+    bool "Touch: swap X/Y before mirroring"
+    default y
+config RD_TOUCH_MIRROR_X
+    bool "Touch: mirror X"
+    default y
+config RD_TOUCH_MIRROR_Y
+    bool "Touch: mirror Y"
+    default n
+endmenu
