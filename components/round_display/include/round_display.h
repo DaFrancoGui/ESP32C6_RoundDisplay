@@ -6,7 +6,9 @@
 #define ROUND_DISPLAY_HEIGHT 240
 
 /* Call once at startup. Owns SPI2 and, when touch is enabled, I2C0.
- * Failures are fatal to the application: use ESP_ERROR_CHECK and reboot.
+ * LCD/SPI/LVGL failures are fatal: use ESP_ERROR_CHECK and reboot.
+ * Touch setup failures are logged and leave *input NULL, with the LCD usable.
+ * A registered input still requires a physical press to verify its I2C reads.
  * This component does not implement hot removal or retry after partial init.
  * After init, protect application LVGL calls with lvgl_port_lock/unlock.
  */

@@ -63,6 +63,7 @@ os passos de compilação e testes nativos abaixo não gravam nada.
 | LCD SCLK | 19 |
 | LCD CS | 1 |
 | LCD DC | 21 |
+| Iluminação, D6 (ativo alto, conforme chave KE) | 16 |
 | Touch SDA / I²C0 | 22 |
 | Touch SCL | 23 |
 | Touch INT | 17 |
@@ -72,6 +73,10 @@ O touch usa endereço `0x2E`, I²C a 100 kHz. MISO e reset do LCD não são
 controlados por este firmware. Alimentação, encaixe e jumpers devem corresponder
 ao Round Display/XIAO utilizado. Confira o esquema antes de adaptar a outro ESP32-C6;
 os números acima são GPIOs, não os nomes D0/D1 impressos na placa.
+
+O console usa **USB Serial/JTAG**, sem UART0 nos GPIO16/17: esses pinos já são
+usados pela iluminação e pela interrupção de toque. A iluminação é ligada em
+nível alto no GPIO16, como na [biblioteca oficial da Seeed](https://github.com/Seeed-Studio/Seeed_Arduino_RoundDisplay/blob/main/src/lv_xiao_round_screen.h).
 
 ## Diagnóstico na tela
 
@@ -116,9 +121,35 @@ O buffer padrão tem **14.400 pixels = 28.800 bytes** (60 linhas); com dois buff
 um teto teórico de aproximadamente 43 quadros inteiros/s para 240×240×16 bits,
 antes de comandos e processamento; a taxa real deve ser medida na montagem.
 
-Se o touch não responder no boot, a inicialização termina com erro explícito.
-Para isolar somente o LCD, desative `Enable CHSC6X touch` no menuconfig e recompile;
-o BOOT continua permitindo a navegação. Não há tentativa de mascarar um touch ausente.
+O boot tenta liberar o barramento I²C antes de criar o driver, pois um reset USB
+pode interromper uma leitura sem desligar o controlador de toque. Se SDA/SCL
+continuarem presos ou a criação do input falhar, o log informa o erro, a página
+de toque mostra `Touch unavailable` e o LCD continua operando com navegação pelo BOOT.
+Não há reinicialização automática da aplicação por falha de setup do touch.
+Os latches de saída são colocados em nível de liberação antes de habilitar o
+modo open-drain, e o código aguarda a estabilização das linhas antes de medi-las.
+Isso evita criar uma condição START durante a configuração dos GPIOs ou classificar
+uma transição de subida como barramento preso. Em uma captura do hardware, o setup
+passou a registrar `SDA=1 SCL=1` e `Touch enabled` após essa correção.
+
+O driver lê cinco bytes de `0x2E` quando INT indica toque, seguindo o protocolo
+da biblioteca Seeed. Não exige um probe de endereço para escrita durante o boot.
+Registrar o input não confirma fisicamente o controlador: valide pressionando os
+quatro alvos. Para isolar o LCD, desative `Enable CHSC6X touch` e recompile.
+
+Se aparecer somente chuvisco, confira primeiro o monitor serial: um loop de
+`ESP_ERROR_CHECK failed` / `abort()` antes da criação da interface deixa a memória
+do painel sem a imagem esperada. Na revisão inicial, um probe I²C fatal causava
+esse comportamento em uma montagem; esse caminho foi removido. Isso não comprova
+que toda ocorrência de chuvisco tenha a mesma causa: se a aplicação estiver
+estável, prossiga com a verificação de SPI, alimentação e painel.
+
+Na montagem usada para diagnosticar essa falha, a revisão corrigida foi gravada
+e os blocos de cores apareceram na tela. O log passou a publicar métricas sem o
+ciclo de aborts observado anteriormente. O usuário confirmou também o toque e
+arraste nos alvos, com marcador e coordenadas acompanhando o dedo após a correção
+dos GPIOs. Permanecem os ensaios de fidelidade das cores, desempenho e duração
+descritos no final deste guia; o resultado de uma montagem não valida todas as placas.
 
 ## Checagens sem gravar a placa
 
@@ -146,7 +177,7 @@ referência visual da montagem original.** Volte ao firmware padrão com `idf.py
 
 Na preparação desta base passaram o teste nativo, as compilações padrão e alternativa
 no ESP-IDF 5.5.1 e a compilação de uma cópia limpa exportada pela ferramenta abaixo.
-O binário padrão ocupou 466.432 bytes, deixando 56% da partição de aplicação livre.
+O binário da revisão inicial ocupou 466.432 bytes, deixando 56% da partição de aplicação livre.
 A dependência `esp_lvgl_port` 2.9.0 ainda emite aviso sobre uma API de touch obsoleta;
 o build conclui com `esp_lcd_touch` 1.2.1 fixado. Nenhum desses checks grava a placa.
 

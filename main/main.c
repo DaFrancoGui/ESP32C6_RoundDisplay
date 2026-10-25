@@ -86,7 +86,7 @@ static void tick(lv_timer_t *timer)
     }
 }
 
-static void create_ui(void)
+static void create_ui(bool touch_available)
 {
     const char *titles[] = {"1 Colors", "2 Touch", "3 Render"};
     for (unsigned i = 0; i < 3; ++i) {
@@ -117,7 +117,7 @@ static void create_ui(void)
         lv_obj_t *name = label(target, i == 0 ? "1" : i == 1 ? "2" : i == 2 ? "3" : "4", 0, 0);
         lv_obj_center(name);
     }
-    coordinates = label(pages[1], "Touch the 4 targets", 0, 0);
+    coordinates = label(pages[1], touch_available ? "Touch the 4 targets" : "Touch unavailable", 0, 0);
     lv_obj_align(coordinates, LV_ALIGN_CENTER, 0, 0);
     cursor = rectangle(pages[1], 0, 0, 9, 9, 0xffff00);
     lv_obj_set_style_radius(cursor, LV_RADIUS_CIRCLE, 0);
@@ -145,7 +145,7 @@ void app_main(void)
     };
     ESP_ERROR_CHECK(gpio_config(&boot));
     ESP_ERROR_CHECK(lvgl_port_lock(1000) ? ESP_OK : ESP_ERR_TIMEOUT);
-    create_ui();
+    create_ui(input != NULL);
     lvgl_port_unlock();
     ESP_LOGI("diagnostics", "BOOT cycles colors/touch/render. Touch %s", input ? "enabled" : "disabled");
     int64_t previous = esp_timer_get_time();
